@@ -23,29 +23,32 @@ export async function onRequest(context) {
     return new Response(null, { headers: CORS });
   }
 
+  // 去掉 /api 前缀，让路由匹配简单
+  let route = path.replace(/^\/api/, '');
+
   try {
-    if (path === '/register' && request.method === 'POST') {
+    if (route === '/register' && request.method === 'POST') {
       return await handleRegister(await request.json(), env);
     }
-    if (path === '/login' && request.method === 'POST') {
+    if (route === '/login' && request.method === 'POST') {
       return await handleLogin(await request.json(), env);
     }
 
     const user = await auth(request, env);
     if (!user) return json({ error: '未登录或登录已过期，请重新登录' }, 401);
 
-    if (path === '/diaries') {
+    if (route === '/diaries') {
       if (request.method === 'GET') return await handleGetDiaries(user, env);
       if (request.method === 'POST') return await handleSaveDiary(user, await request.json(), env);
     }
-    if (path.startsWith('/diaries/') && request.method === 'DELETE') {
-      return await handleDeleteDiary(user, path.split('/').pop(), env);
+    if (route.startsWith('/diaries/') && request.method === 'DELETE') {
+      return await handleDeleteDiary(user, route.split('/').pop(), env);
     }
-    if (path === '/settings') {
+    if (route === '/settings') {
       if (request.method === 'GET') return await handleGetSettings(user, env);
       if (request.method === 'POST') return await handleSaveSettings(user, await request.json(), env);
     }
-    return json({ error: 'not found: ' + path }, 404);
+    return json({ error: 'not found: ' + route }, 404);
   } catch (e) {
     return json({ error: String(e) }, 500);
   }
