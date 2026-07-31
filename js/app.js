@@ -96,20 +96,18 @@ function renderRegisterModal(){
     if(pwd.length<4){ $('#rg-err').textContent='密码至少4位'; return; }
     if(pwd!==pwd2){ $('#rg-err').textContent='两次密码不一致'; return; }
 
-    // 云端注册
-    if(getCloudApi()){
-      $('#rg-err').textContent='';
-      try{
-        await cloudRegister(name, pwd, level);
-      }catch(e){
-        if(/已[被在]?注册|409/i.test(String(e.message))){
-          $('#rg-err').textContent='该用户名已被注册，请返回登录。';
-          return;
-        }
-        // 云端不可达，降级本地
-        if(!confirm('云端暂时连不上（'+e.message+'），要先用本地模式进入吗？日记暂时只存本机。')){
-          return;
-        }
+    // 始终尝试云端注册（空地址时走相对路径 = 同 Worker 域名）
+    $('#rg-err').textContent='';
+    try{
+      await cloudRegister(name, pwd, level);
+    }catch(e){
+      if(/已[被在]?注册|409/i.test(String(e.message))){
+        $('#rg-err').textContent='该用户名已被注册，请返回登录。';
+        return;
+      }
+      // 云端不可达，降级本地
+      if(!confirm('云端暂时连不上（'+e.message+'），要先用本地模式进入吗？日记暂时只存本机。')){
+        return;
       }
     }
 
@@ -141,14 +139,7 @@ function renderLoginModal(){
     if(!name){ $('#li-err').textContent='请输入用户名'; return; }
     if(!pwd){ $('#li-err').textContent='请输入密码'; return; }
 
-    if(!getCloudApi()){
-      // 无云端，尝试匹配本地账号
-      const u = findUserByName(name);
-      if(!u){ $('#li-err').textContent='本地无此账号，且云端未配置。请先注册新账户。'; return; }
-      if(u.pwd !== pwd){ $('#li-err').textContent='密码错误'; return; }
-      setCurrentUser(u); finishUnlock(); return;
-    }
-
+    // 直接尝试云端登录（getCloudApi 为空时自动走相对路径 = 同 Worker 域名）
     $('#li-err').textContent=''; toast('正在连接云端…');
     try{
       const data = await cloudLogin(name, pwd);
