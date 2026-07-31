@@ -1,0 +1,315 @@
+/* =========================================================================
+ * style.css —— 手绘治愈风样式
+ * 马卡龙浅色系 / 圆角卡通 / 书桌 & 横线纸背景 / 柔和过渡动画 / 全响应式
+ * ========================================================================= */
+
+:root{
+  /* 马卡龙低饱和配色 */
+  --pink:#f7c5d8; --pink-soft:#fde7ef;
+  --blue:#bcd9f0; --blue-soft:#e7f2fb;
+  --green:#c7e7c9; --green-soft:#eaf6eb;
+  --yellow:#fbe6a8; --yellow-soft:#fdf6e3;
+  --purple:#d9c7ee; --purple-soft:#f1e9fa;
+  --paper:#fffdf8;          /* 纸张米白 */
+  --ink:#6f5f68;            /* 手写墨色（护眼深灰紫）*/
+  --ink-soft:#9b8b94;
+  --line:#f0dde6;           /* 横线 */
+  --shadow:rgba(180,140,160,.18);
+  --desk:#e9d3b8;           /* 木质书桌 */
+  --desk-dark:#d8bd9c;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  color:var(--ink);
+  background:var(--paper);
+  -webkit-font-smoothing:antialiased;
+  line-height:1.6;
+}
+/* 手写标题字体（系统卡通手写体回退，离线可用）*/
+.hand{font-family:"Comic Sans MS","Segoe Print","Bradley Hand","Chalkboard SE",cursive;}
+
+button{font-family:inherit;cursor:pointer;color:var(--ink);}
+input,textarea,select{font-family:inherit;color:var(--ink);}
+
+/* ---------- 手绘卡通按钮 ---------- */
+.btn{
+  border:2.5px dashed var(--ink-soft);
+  background:var(--paper);
+  border-radius:18px 22px 20px 24px;   /* 不规则圆角，手绘感 */
+  padding:10px 18px;
+  font-size:15px;
+  box-shadow:2px 3px 0 var(--shadow);
+  transition:transform .12s ease, box-shadow .12s ease, background .2s;
+}
+.btn:hover{transform:translateY(-2px) rotate(-.5deg);box-shadow:3px 5px 0 var(--shadow);}
+.btn:active{transform:translateY(1px);box-shadow:1px 2px 0 var(--shadow);}
+.btn.primary{background:var(--pink-soft);border-color:var(--pink);}
+.btn.blue{background:var(--blue-soft);border-color:var(--blue);}
+.btn.green{background:var(--green-soft);border-color:var(--green);}
+.btn.yellow{background:var(--yellow-soft);border-color:var(--yellow);}
+.btn.ghost{background:transparent;border-style:dotted;}
+.btn.sm{padding:6px 12px;font-size:13px;border-radius:14px;}
+.btn.danger{background:#fdeaea;border-color:#f0b4b4;color:#c05858;}
+
+/* ---------- 手绘输入框 ---------- */
+.field{
+  border:2.5px solid var(--line);
+  border-radius:14px 16px 14px 18px;
+  padding:10px 12px;
+  background:#fff;
+  outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+.field:focus{border-color:var(--pink);box-shadow:0 0 0 4px var(--pink-soft);}
+
+/* ===================================================================
+ * 书桌首页（初始页面，始终可见，未解锁时其它页面隐藏）
+ * =================================================================== */
+#desk-page{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  /* 木纹书桌背景：渐变 + 横向纹理 */
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 6px, rgba(0,0,0,.02) 6px 12px),
+    linear-gradient(160deg,var(--desk) 0%, var(--desk-dark) 100%);
+  position:relative;overflow:hidden;
+}
+.desk-card{
+  background:var(--paper);
+  border:3px dashed var(--ink-soft);
+  border-radius:30px;
+  padding:34px 40px;
+  text-align:center;
+  box-shadow:0 14px 40px rgba(120,90,110,.25);
+  max-width:92vw;animation:floatIn .6s ease;
+}
+@keyframes floatIn{from{opacity:0;transform:translateY(18px) scale(.96);}to{opacity:1;transform:none;}}
+.desk-title{font-size:30px;margin:6px 0 2px;color:var(--ink);}
+.desk-sub{color:var(--ink-soft);font-size:14px;margin-bottom:18px;}
+/* 卡通日记本摆件（纯 CSS）*/
+.diary-book{
+  width:150px;height:110px;margin:0 auto 18px;position:relative;
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  border-radius:10px 14px 14px 10px;
+  box-shadow:inset -8px 0 0 rgba(0,0,0,.06), 4px 6px 0 var(--shadow);
+  transform:rotate(-3deg);
+}
+.diary-book::before{ /* 书脊 */
+  content:"";position:absolute;left:10px;top:0;bottom:0;width:8px;
+  background:rgba(255,255,255,.5);border-radius:6px 0 0 6px;
+}
+.diary-book::after{ /* 封面小爱心 */
+  content:"❤";position:absolute;right:18px;top:42px;font-size:26px;color:#fff;
+}
+.desk-lock-hint{font-size:12px;color:var(--ink-soft);margin-top:14px;}
+
+/* ===================================================================
+ * 应用主框架（解锁后显示）
+ * =================================================================== */
+#app{display:none;min-height:100vh;flex-direction:column;background:var(--paper);}
+#app.show{display:flex;}
+
+.topbar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:12px 18px;background:var(--pink-soft);
+  border-bottom:3px dashed var(--pink);
+  position:sticky;top:0;z-index:20;
+}
+.topbar .brand{font-size:18px;margin-right:auto;display:flex;align-items:center;gap:6px;}
+.nav-btn{
+  border:2px solid transparent;background:transparent;border-radius:14px;
+  padding:7px 14px;font-size:14px;transition:.18s;
+}
+.nav-btn.active{background:#fff;border-color:var(--pink);box-shadow:1px 2px 0 var(--shadow);}
+.nav-btn:hover{background:var(--paper);}
+
+.page{display:none;padding:20px;max-width:960px;width:100%;margin:0 auto;animation:pageIn .35s ease;}
+.page.show{display:block;}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+/* ===================================================================
+ * 写作主页
+ * =================================================================== */
+.write-wrap{position:relative;}
+.weather-mood{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px;align-items:center;}
+.chip-group{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{
+  border:2px solid var(--line);background:#fff;border-radius:14px;
+  padding:5px 12px;font-size:14px;cursor:pointer;transition:.15s;user-select:none;
+}
+.chip.active{background:var(--green-soft);border-color:var(--green);transform:scale(1.05);}
+.chip .emo{margin-right:4px;}
+
+/* 编辑区：横线笔记本纸张纹理（网格高度跟随行距 --row，保证字落在格线上）*/
+#editor{
+  width:100%;min-height:320px;resize:vertical;
+  border:3px solid var(--line);border-radius:8px;
+  padding:3px 20px 8px;                    /* 顶部几乎贴边（让文字顶端对齐横线网格的起点） */
+  font-size:17px;
+  --row:34px;                              /* 每行高度（行距设置会覆盖）*/
+  line-height:var(--row);
+  background-color:var(--paper);
+  /* 横线仍画在每行底部，但用 background-position 让它从内容区顶部开始对齐，
+     让"文字顶端 → 横线"之间留出大半个 row 的留白，文字落在两线正中、不压线 */
+  background-image:repeating-linear-gradient(
+    transparent, transparent calc(var(--row) - 1px), var(--line) calc(var(--row) - 1px), var(--line) var(--row));
+  background-size:100% var(--row);
+  background-attachment:local;
+  outline:none;margin-top:4px;
+}
+/* 占位符样式：放在两线正中，颜色淡一点 */
+#editor::placeholder{ color:var(--ink-soft); opacity:.65; }
+#editor:focus{box-shadow:0 0 0 4px var(--blue-soft);}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;align-items:center;}
+
+/* 实时中英提示悬浮卡片（固定贴屏幕底部居中，输入时始终可见） */
+#suggest-pop{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:16px;
+  width:min(760px,calc(100% - 28px));z-index:200;
+  display:none;max-height:44vh;overflow:auto;
+  background:#fff;border:3px dashed var(--blue);border-radius:16px;
+  padding:12px 14px;box-shadow:0 12px 34px var(--shadow);
+  animation:popIn .25s ease;
+}
+#suggest-pop.show{display:block;}
+.suggest-tip{font-size:14px;color:var(--ink-soft);line-height:1.7;padding:4px 2px;}
+@keyframes popIn{from{opacity:0;transform:translateX(-50%) translateY(10px) scale(.98);}to{opacity:1;transform:translateX(-50%);}}
+.suggest-head{font-size:13px;color:var(--ink-soft);margin-bottom:8px;display:flex;justify-content:space-between;}
+.suggest-item{
+  border:2px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:7px;
+  cursor:pointer;transition:.15s;background:var(--paper);
+}
+.suggest-item:hover{background:var(--blue-soft);border-color:var(--blue);transform:translateX(3px);}
+.suggest-item .tag{
+  display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;
+  background:var(--yellow-soft);color:#9a8a4a;margin-right:8px;border:1px solid var(--yellow);
+}
+.suggest-item .tag.online{background:var(--green-soft);color:#5b8a5f;border-color:var(--green);}
+.suggest-item .en{font-size:15px;}
+.suggest-item .cn{font-size:12px;color:var(--ink-soft);}
+
+/* ===================================================================
+ * 弹窗 / 模态框
+ * =================================================================== */
+.mask{
+  position:fixed;inset:0;background:rgba(120,90,110,.28);
+  display:none;align-items:center;justify-content:center;z-index:50;padding:16px;
+  animation:fadeIn .25s ease;
+}
+.mask.show{display:flex;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal{
+  background:var(--paper);border:3px dashed var(--pink);border-radius:22px;
+  padding:24px 26px;width:100%;max-width:420px;box-shadow:0 18px 50px rgba(120,90,110,.3);
+  animation:popIn .3s ease;max-height:88vh;overflow:auto;
+}
+.modal h3{margin:0 0 14px;font-size:20px;}
+.modal .row{margin-bottom:14px;}
+.modal label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:5px;}
+.modal .hint{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+
+/* 语法检查结果列表 */
+.grammar-list{list-style:none;padding:0;margin:0;max-height:46vh;overflow:auto;}
+.grammar-list li{
+  border:2px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;
+  background:var(--yellow-soft);
+}
+.grammar-list .msg{font-size:14px;font-weight:bold;}
+.grammar-list .old{text-decoration:line-through;color:#bb7;color:#c08;}
+.grammar-list .new{color:#5b8a5f;font-weight:bold;}
+.grammar-list .reason{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+
+/* ===================================================================
+ * 历史页 / 报表页 通用卡片
+ * =================================================================== */
+.card{
+  background:#fff;border:2.5px solid var(--line);border-radius:18px;
+  padding:16px 18px;margin-bottom:14px;box-shadow:1px 3px 0 var(--shadow);
+}
+.diary-item{border-left:6px solid var(--pink);}
+.diary-item h4{margin:0 0 6px;font-size:16px;}
+.diary-meta{font-size:12px;color:var(--ink-soft);margin-bottom:8px;display:flex;flex-wrap:wrap;gap:8px;}
+.diary-body{font-size:14px;white-space:pre-wrap;max-height:140px;overflow:hidden;position:relative;}
+.diary-body.open{max-height:none;}
+.tag{display:inline-block;font-size:12px;background:var(--purple-soft);color:#8a6;color:#7a5f9a;
+  border:1px solid var(--purple);border-radius:10px;padding:1px 8px;margin:2px 4px 2px 0;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:14px 0;}
+.stat-box{background:var(--blue-soft);border:2px solid var(--blue);border-radius:16px;padding:14px;text-align:center;}
+.stat-box .num{font-size:26px;font-weight:bold;color:var(--ink);}
+.stat-box .lab{font-size:12px;color:var(--ink-soft);}
+
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.cal-cell{
+  aspect-ratio:1;border:2px solid var(--line);border-radius:10px;display:flex;
+  align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:.15s;
+  background:#fff;position:relative;
+}
+.cal-cell.has{background:var(--green-soft);border-color:var(--green);color:#5b8a5f;font-weight:bold;}
+.cal-cell:hover{transform:scale(1.06);}
+.cal-cell.empty{visibility:hidden;}
+
+/* 报表图表容器 */
+.chart-box{background:#fff;border:2.5px solid var(--line);border-radius:18px;padding:12px;margin-bottom:16px;box-shadow:1px 3px 0 var(--shadow);}
+.chart-box h3{margin:4px 0 10px;font-size:16px;}
+.chart-box canvas{width:100%;height:auto;display:block;}
+
+/* 设置项 */
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0;}
+.switch{position:relative;width:52px;height:28px;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;inset:0;background:var(--line);border-radius:20px;transition:.2s;cursor:pointer;}
+.slider::before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px var(--shadow);}
+.switch input:checked + .slider{background:var(--green);}
+.switch input:checked + .slider::before{transform:translateX(24px);}
+
+/* 贴纸表情工具条 */
+.sticker-bar{display:flex;flex-wrap:wrap;gap:6px;}
+.sticker{
+  width:38px;height:38px;border:2px solid var(--line);border-radius:12px;background:#fff;
+  font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;
+}
+.sticker:hover{background:var(--yellow-soft);transform:scale(1.12) rotate(-6deg);}
+
+/* 小徽标 */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;background:var(--purple-soft);
+  border:1px solid var(--purple);border-radius:12px;padding:2px 10px;color:#7a5f9a;}
+
+/* 多日记本选择卡片 */
+.user-card{border:2.5px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px;
+  background:#fff;display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.user-card .uc-name{font-weight:bold;flex:1 1 100%;font-size:15px;}
+.user-card .uc-err{color:#c05858;flex:1 1 100%;margin:0;font-size:12px;min-height:0;}
+
+/* 提示气泡（toast）*/
+#toast{
+  position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:10px 18px;border-radius:16px;font-size:14px;
+  opacity:0;pointer-events:none;transition:.3s;z-index:99;max-width:90vw;text-align:center;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* 打印专用（导出 PDF 时用浏览器打印，另存为 PDF）*/
+@media print{
+  #desk-page,#app .topbar,.toolbar,.sticker-bar,#toast,.mask,.cal-head,.card .set-row{display:none !important;}
+  body{background:#fff;}
+  .page{display:none !important;padding:0;}
+  #print-root{display:block !important;}
+  #print-root .print-area{border:none !important;box-shadow:none !important;break-inside:avoid;}
+}
+
+/* ---------- 全响应式：窄屏适配 ---------- */
+@media (max-width:600px){
+  .desk-card{padding:26px 22px;}
+  .desk-title{font-size:24px;}
+  .topbar{padding:10px 12px;gap:4px;}
+  .nav-btn{padding:6px 10px;font-size:13px;}
+  .page{padding:14px;}
+  #editor{font-size:16px;min-height:260px;}
+  .modal{padding:18px;}
+}

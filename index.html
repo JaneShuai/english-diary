@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>手绘治愈私密英语日记本</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ============ 书桌首页（初始页面，未解锁时唯一可见） ============ -->
+  <section id="desk-page">
+    <div class="desk-card">
+      <div class="diary-book" aria-hidden="true"></div>
+      <div class="desk-title hand">我的私密英语日记本</div>
+      <div class="desk-sub">把每天的小心情，写成温柔的英文 ✦</div>
+      <button class="btn primary" id="btn-start">开始记录</button>
+      <div class="desk-lock-hint">点击「开始记录」选择或创建你的日记本 · 可多人共用 · 刷新/关闭后自动上锁</div>
+    </div>
+  </section>
+
+  <!-- ============ 应用主框架（解锁后显示） ============ -->
+  <div id="app">
+    <header class="topbar">
+      <div class="brand hand">📔 英语日记本</div>
+      <button class="nav-btn active" data-page="write">✏️ 写作</button>
+      <button class="nav-btn" data-page="history">📚 历史</button>
+      <button class="nav-btn" data-page="report">📈 报表</button>
+      <button class="nav-btn" data-page="settings">⚙️ 设置</button>
+      <button class="btn ghost sm" id="btn-lock" title="上锁返回书桌">🔒 上锁</button>
+    </header>
+
+    <!-- ---------- 写作主页 ---------- -->
+    <main class="page show" id="page-write">
+      <div class="weather-mood card">
+        <div>
+          <div class="row" style="margin:0 0 6px"><b>☁️ 天气</b></div>
+          <div class="chip-group" id="weather-chips"></div>
+        </div>
+        <div>
+          <div class="row" style="margin:0 0 6px"><b>💗 心情</b></div>
+          <div class="chip-group" id="mood-chips"></div>
+        </div>
+      </div>
+
+      <div class="write-wrap">
+        <textarea id="editor" class="field" placeholder="Write down every little feeling~"></textarea>
+
+        <!-- 实时中英提示悬浮卡片 -->
+        <div id="suggest-pop">
+          <div class="suggest-head">
+            <span>💡 中文实时英文提示（点击即可插入）</span>
+            <span class="badge" id="suggest-mode">离线素材库</span>
+          </div>
+          <div id="suggest-list"></div>
+        </div>
+      </div>
+
+      <!-- 贴纸表情美化工具条 -->
+      <div class="toolbar">
+        <span class="badge">🎀 贴纸</span>
+        <div class="sticker-bar" id="sticker-bar"></div>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn blue" id="btn-grammar">🔍 全文语法检测</button>
+        <button class="btn green" id="btn-save">💾 保存日记</button>
+        <span id="write-tip" class="hint" style="font-size:12px;color:var(--ink-soft)"></span>
+      </div>
+    </main>
+
+    <!-- ---------- 历史日记页 ---------- -->
+    <main class="page" id="page-history">
+      <div class="card">
+        <div class="cal-head">
+          <button class="btn sm" id="cal-prev">◀</button>
+          <b id="cal-title">2026 年 7 月</b>
+          <button class="btn sm" id="cal-next">▶</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px">
+          <b>📋 日记列表</b>
+          <select id="tag-filter" class="field sm" style="width:auto"></select>
+          <button class="btn sm ghost" id="btn-export-all">⬇️ 批量导出</button>
+        </div>
+        <div id="diary-list"></div>
+      </div>
+    </main>
+
+    <!-- ---------- 数据报表页 ---------- -->
+    <main class="page" id="page-report">
+      <div class="stat-grid" id="report-stats"></div>
+      <div class="chart-box"><h3>📊 英文写作占比（近 14 天）</h3><canvas id="chart-ratio" width="880" height="300"></canvas></div>
+      <div class="chart-box"><h3>📈 英文写作成长趋势</h3><canvas id="chart-trend" width="880" height="280"></canvas></div>
+      <div class="chart-box"><h3>🗓️ 本月打卡日历</h3><canvas id="chart-checkin" width="880" height="260"></canvas></div>
+    </main>
+
+    <!-- ---------- 设置页 ---------- -->
+    <main class="page" id="page-settings">
+      <div class="card">
+        <h3>👤 基本信息</h3>
+        <div class="set-row">
+          <div>用户名 / 日记本名</div>
+          <input class="field" id="set-username" style="width:200px" />
+        </div>
+        <div class="set-row">
+          <div>英语等级</div>
+          <select class="field" id="set-level" style="width:auto">
+            <option value="cet4">英语四级</option>
+            <option value="cet6">英语六级</option>
+            <option value="ielts_basic">雅思基础</option>
+            <option value="ielts_advanced">雅思进阶</option>
+          </select>
+        </div>
+        <div class="set-row">
+          <div>修改解锁密码</div>
+          <div>
+            <input class="field sm" id="set-pwd-new" placeholder="新密码" style="width:130px" />
+            <input class="field sm" id="set-pwd-confirm" placeholder="再输一次" style="width:130px" />
+          </div>
+        </div>
+        <button class="btn primary sm" id="btn-save-settings">保存设置</button>
+      </div>
+
+      <div class="card">
+        <h3>🌐 有道翻译（联网增强）</h3>
+        <div class="set-row">
+          <div>
+            <div>有道翻译代理地址</div>
+            <div class="hint" style="font-size:12px;color:var(--ink-soft);max-width:360px">
+              🔒 填你自己部署的 Cloudflare Workers 代理地址（部署步骤见 README）。有道密钥只存在你的服务端，前端<b>只上传“当前正在输入的那一句中文”</b>。
+            </div>
+          </div>
+          <input class="field" id="set-proxy" placeholder="https://你的代理.workers.dev" style="width:240px" />
+        </div>
+        <div class="set-row">
+          <div>
+            <div>开启后实时翻译 / 语法检测更精准</div>
+            <div class="hint" style="font-size:12px;color:var(--ink-soft);max-width:360px">
+              🔒 隐私：仅在你输中文时，把<b>当前这一句中文</b>经代理发往有道；<b>绝不上传</b>日记全文、用户名、密码、心情。断网或未配置代理会自动降级为本地离线素材库。
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="set-online" />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>☁️ 云端同步（跨设备）</h3>
+        <div class="set-row">
+          <div>
+            <div>API 服务器地址</div>
+            <div class="hint" style="font-size:12px;color:var(--ink-soft);max-width:360px">
+              部署 diary-api-worker.js（Cloudflare Workers）后填入地址，即可注册/登录云端账号，实现<b>电脑和手机日记自动同步</b>。不填则仅使用本机存储。
+            </div>
+          </div>
+          <input class="field" id="set-api" placeholder="https://xxx.workers.dev" style="width:240px" />
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>✒️ 编辑区偏好</h3>
+        <div class="set-row">
+          <div>字体</div>
+          <select class="field" id="set-font" style="width:auto">
+            <option value="">默认（护眼黑体）</option>
+            <option value="'Comic Sans MS',cursive">手写体</option>
+            <option value="'KaiTi','STKaiti',serif">楷体</option>
+            <option value="Georgia,serif">衬线体</option>
+          </select>
+        </div>
+        <div class="set-row">
+          <div>行距</div>
+          <select class="field" id="set-linespace" style="width:auto">
+            <option value="28">紧凑</option>
+            <option value="34" selected>舒适（默认）</option>
+            <option value="42">宽松</option>
+            <option value="50">超宽</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🗑️ 数据管理</h3>
+        <div class="set-row">
+          <div>清空本日记本全部日记与设置（账号保留）</div>
+          <button class="btn danger" id="btn-clear">清空本日记本</button>
+        </div>
+        <div class="set-row">
+          <div>彻底删除本日记本（含账号与全部日记）</div>
+          <button class="btn danger" id="btn-del-book">删除日记本</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ 弹窗：解锁 / 首次设置 ============ -->
+  <div class="mask" id="mask-unlock">
+    <div class="modal" id="modal-unlock"></div>
+  </div>
+
+  <!-- ============ 弹窗：语法检测结果 ============ -->
+  <div class="mask" id="mask-grammar">
+    <div class="modal">
+      <h3>🔍 语法检测报告</h3>
+      <div id="grammar-result"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn green" id="btn-fix-all">✨ 一键全文修正</button>
+        <button class="btn ghost" id="btn-grammar-close">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 弹窗：历史日记 查看/编辑 ============ -->
+  <div class="mask" id="mask-view">
+    <div class="modal" id="modal-view" style="max-width:560px"></div>
+  </div>
+
+  <!-- ============ Toast ============ -->
+  <div id="toast"></div>
+
+  <!-- 脚本：严格顺序加载（data→storage→translate→charts→app）-->
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/translate.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
