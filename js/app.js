@@ -181,6 +181,7 @@ function finishUnlock(){
     setYoudaoProxy(v);
     state.proxy = v;
     if (v) toast('有道代理已保存，下一次输入中文即生效');
+    cloudSaveSetting('proxy', v).catch(()=>{}); // 同步到云端
   });
   // API 服务器地址（云端同步）
   $('#set-api').value=getCloudApi();
@@ -555,6 +556,7 @@ $('#btn-save-settings').addEventListener('click',()=>{
 $('#set-online').addEventListener('change',e=>{
   state.online=e.target.checked;setOnline(state.online);
   toast(state.online?'已开启联网增强（仅上传单句中文）':'已关闭，回到离线模式');
+  cloudSaveSetting('online', state.online).catch(()=>{});
 });
 $('#set-font').addEventListener('change',e=>{setFont(e.target.value);applyEditorPref();});
 $('#set-linespace').addEventListener('change',e=>{setLineSpace(e.target.value);applyEditorPref();});

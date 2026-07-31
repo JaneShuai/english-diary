@@ -87,8 +87,7 @@ async function syncFromCloud() {
   if (!getToken()) return; // 未登录
   try {
     const clouds = await cloudGetDiaries();
-    if (!clouds.length) return;
-    // 本地日记（用 id 做键，避免重复）
+    // 合并日记
     const locals = getDiaries();
     const map = {};
     locals.forEach(d => { map[d.id] = d; });
