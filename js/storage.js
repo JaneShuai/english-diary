@@ -20,7 +20,7 @@ function lsSet(key, val) { try { localStorage.setItem(key, val); return true; } 
 function lsRemove(key) { try { localStorage.removeItem(key); } catch (e) {} }
 
 /* ================ 云端连接 ================ */
-function getCloudApi() { return lsGet(KEY_API) || 'https://diary-api.1127857011.workers.dev'; }
+function getCloudApi() { return lsGet(KEY_API) || ''; }   // 同一 Worker 下为空，走相对路径
 function setCloudApi(url) { lsSet(KEY_API, (url || '').trim()); }
 function getToken() { return lsGet(KEY_TOKEN) || ''; }
 function setToken(t) { if (t) lsSet(KEY_TOKEN, t); else lsRemove(KEY_TOKEN); }
@@ -28,7 +28,7 @@ function isCloudOk() { return _cloudOk; }
 
 async function cloudCall(method, path, body) {
   const api = getCloudApi();
-  if (!api) throw new Error('未配置云端地址');
+  const url = api ? (api + path) : path;  // 无配置时走相对路径（同一Worker下）
   const opts = { method, headers: { 'Content-Type': 'application/json' } };
   const token = getToken();
   if (token) opts.headers['Authorization'] = 'Bearer ' + token;
@@ -36,7 +36,7 @@ async function cloudCall(method, path, body) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 10000);
   try {
-    const res = await fetch(api + path, { ...opts, signal: ctrl.signal });
+    const res = await fetch(url, { ...opts, signal: ctrl.signal });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || '请求失败 ' + res.status);
     _cloudOk = true;
