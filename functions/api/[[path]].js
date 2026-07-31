@@ -27,6 +27,26 @@ export async function onRequest(context) {
   let route = path.replace(/^\/api/, '');
 
   try {
+    // 有道翻译代理（无需登录，直接走 env 里的 API 密钥）
+    if (route === '/translate') {
+      const q = url.searchParams.get('q') || '';
+      const from = url.searchParams.get('from') || 'zh-CHS';
+      const to = url.searchParams.get('to') || 'en';
+      if (!q) return json({ error: '缺少 q 参数' }, 400);
+      const appKey = env.YOUDAO_APP_KEY;
+      const appSecret = env.YOUDAO_APP_SECRET;
+      if (!appKey || !appSecret) return json({ error: '未配置有道 API 密钥' }, 500);
+      const salt = crypto.randomUUID();
+      const curtime = String(Math.floor(Date.now() / 1000));
+      const input = q.length <= 20 ? q : q.slice(0, 10) + q.length + q.slice(q.length - 10);
+      const sign = await sha256(appKey + input + salt + curtime + appSecret);
+      const target = 'https://openapi.youdao.com/api?q=' + encodeURIComponent(q)
+        + '&from=' + from + '&to=' + to + '&appKey=' + appKey
+        + '&salt=' + salt + '&sign=' + sign + '&signType=v3&curtime=' + curtime;
+      const resp = await fetch(target);
+      return new Response(await resp.text(), { headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8' } });
+    }
+
     if (route === '/register' && request.method === 'POST') {
       return await handleRegister(await request.json(), env);
     }
