@@ -84,7 +84,7 @@ async function cloudSaveSetting(key, value) {
 
 /* ================ 同步：云端 → 本地合并 ================ */
 async function syncFromCloud() {
-  if (!getCloudApi() || !getToken()) return; // 未登录或未配 API
+  if (!getToken()) return; // 未登录
   try {
     const clouds = await cloudGetDiaries();
     if (!clouds.length) return;
@@ -112,13 +112,13 @@ async function syncFromCloud() {
 
 // 异步上传单篇日记到云端（失败不报错，本地保留）
 function pushToCloud(diary) {
-  if (!getCloudApi() || !getToken()) return;
+  if (!getToken()) return;
   cloudSaveDiary(diary).catch(() => {});
 }
 
 // 异步删除云端单篇日记
 function delFromCloud(id) {
-  if (!getCloudApi() || !getToken()) return;
+  if (!getToken()) return;
   cloudDeleteDiary(id).catch(() => {});
 }
 
