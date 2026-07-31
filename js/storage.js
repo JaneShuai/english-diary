@@ -231,5 +231,5 @@ function ymd(date) {
 
 /* ===================== 有道翻译代理地址 ===================== */
 const KEY_PROXY = STORE_PREFIX + 'youdao_proxy';
-function getYoudaoProxy() { return lsGet(KEY_PROXY) || ''; }
+function getYoudaoProxy() { return lsGet(KEY_PROXY) || 'https://english-diary.pages.dev/api/translate'; }
 function setYoudaoProxy(v) { lsSet(KEY_PROXY, (v || '').trim()); }
