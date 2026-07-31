@@ -20,7 +20,7 @@ function lsSet(key, val) { try { localStorage.setItem(key, val); return true; } 
 function lsRemove(key) { try { localStorage.removeItem(key); } catch (e) {} }
 
 /* ================ 云端连接 ================ */
-function getCloudApi() { return lsGet(KEY_API) || ''; }
+function getCloudApi() { return lsGet(KEY_API) || 'https://diary-api.1127857011.workers.dev'; }
 function setCloudApi(url) { lsSet(KEY_API, (url || '').trim()); }
 function getToken() { return lsGet(KEY_TOKEN) || ''; }
 function setToken(t) { if (t) lsSet(KEY_TOKEN, t); else lsRemove(KEY_TOKEN); }
