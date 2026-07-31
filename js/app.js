@@ -543,15 +543,22 @@ $('#btn-save-settings').addEventListener('click',()=>{
   const np=$('#set-pwd-new').value, nc=$('#set-pwd-confirm').value;
   if(!name){toast('名字不能为空');return;}
   setUser(name);setLevel(lvl);state.level=lvl;
+  // 各种设置集中保存 + 同步云端
   setYoudaoProxy($('#set-proxy').value.trim()); state.proxy=getYoudaoProxy();
+  cloudSaveSetting('proxy', state.proxy).catch(()=>{});
+  setCloudApi($('#set-api').value.trim());
+  setFont($('#set-font').value);
+  setLineSpace($('#set-linespace').value);
+  cloudSaveSetting('font', $('#set-font').value).catch(()=>{});
+  cloudSaveSetting('linespace', $('#set-linespace').value).catch(()=>{});
+  applyEditorPref();
   if(np){
     if(np.length<4){toast('新密码至少 4 位');return;}
     if(np!==nc){toast('两次密码不一致');return;}
     setPwd(np);toast('密码已更新');
   }
   $('#set-pwd-new').value='';$('#set-pwd-confirm').value='';
-  applyEditorPref();
-  toast('设置已保存 ✅');
+  toast('全部设置已保存 ✅ 已同步云端');
 });
 $('#set-online').addEventListener('change',e=>{
   state.online=e.target.checked;setOnline(state.online);
