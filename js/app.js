@@ -117,7 +117,7 @@ function renderSetupModal(){
     <button class="btn primary" id="su-submit">进入日记本 💖</button>
     <div class="hint">⚠️ 密码仅存于本机浏览器，忘记无法找回，请妥善保管。</div>
   `;
-  $('#su-submit').onclick = () => {
+  $('#su-submit').onclick = async () => {
     const name=$('#su-name').value.trim();
     const pwd=$('#su-pwd').value;
     const pwd2=$('#su-pwd2').value;
@@ -125,6 +125,22 @@ function renderSetupModal(){
     if(!name){toast('请填写名字');return;}
     if(pwd.length<4){toast('密码至少 4 位');return;}
     if(pwd!==pwd2){toast('两次密码不一致');return;}
+
+    // 如果配了云端 API：先在云端注册（失败则降级本地模式）
+    if(getCloudApi()){
+      try{
+        toast('正在云端注册账号…');
+        await cloudRegister(name, pwd, level);
+      }catch(e){
+        if(/已[被在]?注册|409/i.test(String(e.message))){
+          toast('云端已有此账号，正在登录…');
+          try{ await cloudLogin(name, pwd); }catch(e2){ toast('登录失败：'+e2.message+'（使用本地模式）'); }
+        }else{
+          toast('云端注册失败（'+e.message+'），已转为本地模式');
+        }
+      }
+    }
+
     const u={ id:'u_'+Date.now()+'_'+Math.floor(Math.random()*1000),
               username:name, pwd, level, online:false, font:'', linespace:'34' };
     addUser(u); setCurrentUser(u);
