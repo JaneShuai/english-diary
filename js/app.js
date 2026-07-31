@@ -46,151 +46,131 @@ function lock(){ // 回到书桌首页（清空当前选中日记本，仅收起
   closeAllMask();
 }
 
-/* ============================ 解锁 / 首次设置 ============================ */
-// 点击“开始记录”
+/* ============================ 解锁（注册 / 登录二选一） ============================ */
 $('#btn-start').addEventListener('click', openUnlock);
 
 function openUnlock(){
-  if (isFirstUse()) { renderSetupModal(); }   // 还没有任何日记本 → 直接创建
-  else { renderPickerModal(); }               // 已有日记本 → 选择 / 输入密码
+  renderWelcomeModal();
   $('#mask-unlock').classList.add('show');
 }
 
-// 多人共用：选择已有日记本（各自输入密码进入）
-function renderPickerModal(){
-  const users = getUsers();
-  const cards = users.map(u => `
-    <div class="user-card">
-      <div class="uc-name">📔 ${esc(u.username)}</div>
-      <span class="badge">${LEVELS[u.level] || u.level}</span>
-      <input class="field sm" type="password" placeholder="输入密码" data-uid="${u.id}" />
-      <button class="btn sm primary" data-enter="${u.id}">进入</button>
-      <div class="uc-err" data-err="${u.id}"></div>
-    </div>`).join('');
+// 首页选择：注册 or 登录（二选一，简洁明了）
+function renderWelcomeModal(){
   $('#modal-unlock').innerHTML = `
-    <h3>📖 选择你的日记本</h3>
-    <div class="hint" style="margin-bottom:10px">可多人共用同一设备：每人一本独立日记，数据互不干扰。</div>
-    <div id="user-cards">${cards}</div>
-    <button class="btn green" id="up-new">＋ 创建新日记本</button>
-      <button class="btn blue" id="up-login">🔑 登录云端账号</button>
+    <h3>📔 私密英语日记</h3>
+    <p class="hint" style="margin-bottom:14px">日记存于云端，在任意设备登录同一账号都能看到全部历史记录。</p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn primary" id="wu-register" style="flex:1;max-width:200px">🆕 注册新账户</button>
+      <button class="btn blue" id="wu-login" style="flex:1;max-width:200px">🔑 登录已有账户</button>
+    </div>
   `;
-  $('#up-new').onclick = () => renderSetupModal();
-  $('#up-login').onclick = () => renderLoginModal();
-  $('#modal-unlock').querySelectorAll('[data-enter]').forEach(btn => {
-    btn.onclick = () => {
-      const u = findUserById(btn.dataset.enter);
-      const inp = $(`#modal-unlock input[data-uid="${btn.dataset.enter}"]`);
-      if (inp.value === u.pwd) { setCurrentUser(u); finishUnlock(); }
-      else { $(`#modal-unlock [data-err="${btn.dataset.enter}"]`).textContent = '密码错误，请重试'; inp.value = ''; }
-    };
-  });
-  $('#modal-unlock').querySelectorAll('input[data-uid]').forEach(inp => {
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.closest('.user-card').querySelector('[data-enter]').click(); });
-  });
+  $('#wu-register').onclick = () => renderRegisterModal();
+  $('#wu-login').onclick = () => renderLoginModal();
 }
 
-// 首次使用：设置用户名 / 密码 / 等级
-function renderSetupModal(){
+// ==================== 注册 ====================
+function renderRegisterModal(){
   $('#modal-unlock').innerHTML = `
-    <h3>🌟 欢迎创建你的私密日记本</h3>
-    <div class="row">
-      <label>给自己起个名字 / 日记本名</label>
-      <input class="field" id="su-name" placeholder="例如：小树的日记" />
-    </div>
-    <div class="row">
-      <label>设置解锁密码</label>
-      <input class="field" id="su-pwd" type="password" placeholder="仅本地保存，请牢记" />
-    </div>
-    <div class="row">
-      <label>确认密码</label>
-      <input class="field" id="su-pwd2" type="password" />
-    </div>
-    <div class="row">
-      <label>选择你的英语水平（决定提示用词难度）</label>
-      <select class="field" id="su-level">
-        <option value="cet4">英语四级</option>
-        <option value="cet6">英语六级</option>
-        <option value="ielts_basic">雅思基础</option>
-        <option value="ielts_advanced">雅思进阶</option>
+    <h3>🆕 注册新账户</h3>
+    <div class="row"><label>用户名</label><input class="field" id="rg-name" placeholder="取个好记的名字，纯英文为宜" /></div>
+    <div class="row"><label>密码</label><input class="field" id="rg-pwd" type="password" placeholder="至少4位" /></div>
+    <div class="row"><label>确认密码</label><input class="field" id="rg-pwd2" type="password" /></div>
+    <div class="row"><label>英语水平</label>
+      <select class="field" id="rg-level">
+        <option value="cet4">英语四级</option><option value="cet6">英语六级</option>
+        <option value="ielts_basic">雅思基础</option><option value="ielts_advanced">雅思进阶</option>
       </select>
     </div>
-    <button class="btn primary" id="su-submit">进入日记本 💖</button>
-    <div class="hint">⚠️ 密码仅存于本机浏览器，忘记无法找回，请妥善保管。</div>
+    <button class="btn primary" id="rg-submit">注册并进入 ✨</button>
+    <button class="btn ghost" id="rg-back" style="margin-top:4px">← 返回</button>
+    <div id="rg-err" class="hint" style="color:#c05858;margin-top:6px"></div>
   `;
-  $('#su-submit').onclick = async () => {
-    const name=$('#su-name').value.trim();
-    const pwd=$('#su-pwd').value;
-    const pwd2=$('#su-pwd2').value;
-    const level=$('#su-level').value;
-    if(!name){toast('请填写名字');return;}
-    if(pwd.length<4){toast('密码至少 4 位');return;}
-    if(pwd!==pwd2){toast('两次密码不一致');return;}
+  $('#rg-back').onclick = () => renderWelcomeModal();
+  $('#rg-submit').onclick = async () => {
+    const name = $('#rg-name').value.trim();
+    const pwd  = $('#rg-pwd').value;
+    const pwd2 = $('#rg-pwd2').value;
+    const level = $('#rg-level').value;
+    if(!name){ $('#rg-err').textContent='请输入用户名'; return; }
+    if(name.length<2||name.length>20){ $('#rg-err').textContent='用户名需2-20个字符'; return; }
+    if(pwd.length<4){ $('#rg-err').textContent='密码至少4位'; return; }
+    if(pwd!==pwd2){ $('#rg-err').textContent='两次密码不一致'; return; }
 
-    // 如果配了云端 API：先在云端注册（失败则降级本地模式）
+    // 云端注册
     if(getCloudApi()){
+      $('#rg-err').textContent='';
       try{
-        toast('正在云端注册账号…');
         await cloudRegister(name, pwd, level);
       }catch(e){
         if(/已[被在]?注册|409/i.test(String(e.message))){
-          toast('云端已有此账号，正在登录…');
-          try{ await cloudLogin(name, pwd); }catch(e2){ toast('登录失败：'+e2.message+'（使用本地模式）'); }
-        }else{
-          toast('云端注册失败（'+e.message+'），已转为本地模式');
+          $('#rg-err').textContent='该用户名已被注册，请返回登录。';
+          return;
+        }
+        // 云端不可达，降级本地
+        if(!confirm('云端暂时连不上（'+e.message+'），要先用本地模式进入吗？日记暂时只存本机。')){
+          return;
         }
       }
     }
 
-    const u={ id:'u_'+Date.now()+'_'+Math.floor(Math.random()*1000),
-              username:name, pwd, level, online:false, font:'', linespace:'34' };
+    // 创建本地账号
+    const u = { id:'u_'+Date.now()+'_'+Math.floor(Math.random()*1000),
+                username:name, pwd, level, online:false, font:'', linespace:'34' };
     addUser(u); setCurrentUser(u);
     finishUnlock();
   };
+  $('#rg-pwd2').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#rg-submit').click(); });
 }
 
-// 登录云端已有账号（跨设备同步）
+// ==================== 登录 ====================
 function renderLoginModal(){
   $('#modal-unlock').innerHTML = `
-    <h3>🔑 登录你的云端日记</h3>
-    <div class="hint">登录后日记自动从云端拉取，电脑手机数据同步。</div>
-    <div class="row"><label>用户名</label><input class="field" id="li-username" placeholder="你的账号名" /></div>
-    <div class="row"><label>密码</label><input class="field" id="li-pwd" type="password" placeholder="云端密码" /></div>
-    <div class="row"><label>API 地址（可选，已配好则跳过）</label><input class="field" id="li-api" placeholder="https://xxx.workers.dev" value="${getCloudApi()}" /></div>
-    <button class="btn primary" id="li-submit">登录并同步</button>
+    <h3>🔑 登录已有账户</h3>
+    <div class="hint" style="margin-bottom:8px">在不同浏览器登录同一账户，日记会自动同步。</div>
+    <div class="row"><label>用户名</label><input class="field" id="li-name" placeholder="你的账户名" /></div>
+    <div class="row"><label>密码</label><input class="field" id="li-pwd" type="password" placeholder="你的密码" /></div>
+    <button class="btn primary" id="li-submit">登录并同步 ☁️</button>
     <button class="btn ghost" id="li-back" style="margin-top:4px">← 返回</button>
     <div id="li-err" class="hint" style="color:#c05858;margin-top:6px"></div>
-    <div class="hint" style="margin-top:4px">💡 还没部署 diary-api-worker.js？点返回用本地模式即可。</div>
+    <div class="hint" style="margin-top:4px;font-size:12px;color:var(--ink-soft)">数据存于云端（Cloudflare KV），密码加密传输，请放心。</div>
   `;
-  $('#li-back').onclick = () => renderPickerModal();
-  $('#li-submit').onclick = async ()=>{
-    const name = $('#li-username').value.trim();
+  $('#li-back').onclick = () => renderWelcomeModal();
+  $('#li-submit').onclick = async () => {
+    const name = $('#li-name').value.trim();
     const pwd = $('#li-pwd').value;
-    const api = $('#li-api').value.trim();
-    if(!name){$('#li-err').textContent='请输入用户名';return;}
-    if(!pwd){$('#li-err').textContent='请输入密码';return;}
-    if(api) setCloudApi(api);
+    if(!name){ $('#li-err').textContent='请输入用户名'; return; }
+    if(!pwd){ $('#li-err').textContent='请输入密码'; return; }
+
     if(!getCloudApi()){
+      // 无云端，尝试匹配本地账号
       const u = findUserByName(name);
-      if(!u){$('#li-err').textContent='本地无此账号且未配置云端。请先创建日记本或填写 API 地址。';return;}
-      if(u.pwd!==pwd){$('#li-err').textContent='密码错误';return;}
+      if(!u){ $('#li-err').textContent='本地无此账号，且云端未配置。请先注册新账户。'; return; }
+      if(u.pwd !== pwd){ $('#li-err').textContent='密码错误'; return; }
       setCurrentUser(u); finishUnlock(); return;
     }
+
     $('#li-err').textContent=''; toast('正在连接云端…');
     try{
       const data = await cloudLogin(name, pwd);
+      // 云端登录成功：创建或更新本地账号
       let u = findUserByName(name);
-      if(!u){ u = { id:'u_'+Date.now()+'_'+Math.floor(Math.random()*1000), username:name, pwd, level:data.user.level||'cet4', online:false, font:'', linespace:'34' }; addUser(u); }
+      if(!u){
+        u = { id:'u_'+Date.now()+'_'+Math.floor(Math.random()*1000),
+              username:name, pwd, level:data.user.level||'cet4',
+              online:false, font:'', linespace:'34' };
+        addUser(u);
+      }
       setCurrentUser(u);
-      toast('登录成功，同步日记中…');
+      toast('登录成功，正在同步日记…');
       await syncFromCloud();
       finishUnlock();
-      toast('同步完成 ☁️');
-    }catch(e){ $('#li-err').textContent='登录失败：'+(e.message||'请检查 API 地址和网络'); }
+      toast('同步完成！日记已从云端拉取 ☁️');
+    }catch(e){
+      $('#li-err').textContent='登录失败：'+(e.message||'请检查网络和 API 地址');
+    }
   };
-  $('#li-pwd').addEventListener('keydown', e=>{if(e.key==='Enter')$('#li-submit').click();});
+  $('#li-pwd').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#li-submit').click(); });
 }
-
-// （旧版单用户密码弹窗已废弃，改用多日记本选择 renderPickerModal）
 
 function finishUnlock(){
   state.unlocked=true;
